@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iran Crisis Trade Monitor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root { --purple:#352057; --orange:#B95627; --bg:#f4f2f7; --card:#fff; --text:#2c2c2c; --muted:#7a7a8c; --red:#d9534f; --green:#5cb85c; --border:#e0dce6; }
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--text); }
+.hdr{ background:var(--purple); color:#fff; padding:16px 28px; }
+.hdr h1{ font-size:20px; font-weight:600; }
+.hdr .sub{ color:var(--orange); font-size:12px; margin-top:2px; }
+.hdr .meta{ font-size:11px; color:#b0aac0; margin-top:4px; }
+.dash{ padding:20px 28px; max-width:1400px; margin:0 auto; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-bottom:20px; }
+.kpi{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center; }
+.kpi .lbl{ font-size:10px; text-transform:uppercase; color:var(--muted); letter-spacing:.5px; }
+.kpi .val{ font-size:24px; font-weight:700; margin:2px 0; }
+.kpi .chg{ font-size:12px; }
+.kpi .neg{ color:var(--red); }
+.kpi .pos{ color:var(--green); }
+.sec{ font-size:15px; font-weight:600; margin:22px 0 10px; padding-bottom:4px; border-bottom:2px solid var(--orange); display:inline-block; }
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(440px,1fr)); gap:14px; margin-bottom:16px; }
+.card{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px; }
+.card h3{ font-size:13px; font-weight:600; margin-bottom:2px; }
+.card .desc{ font-size:11px; color:var(--muted); margin-bottom:10px; }
+.card canvas{ max-height:260px; }
+.note{ font-size:11px; color:var(--muted); margin-top:16px; padding:10px; background:var(--card); border:1px solid var(--border); border-radius:6px; }
+.insight{ background:#fdf6f0; border-left:3px solid var(--orange); padding:10px 14px; margin:10px 0; font-size:12px; border-radius:0 6px 6px 0; }
+@media(max-width:768px){ .grid{ grid-template-columns:1fr; } .kpi-row{ grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body>
+<style>
+  #auth-gate { display:flex; align-items:center; justify-content:center; min-height:100vh; background:linear-gradient(135deg, #1e293b 0%, #334155 100%); }
+  .auth-box { background:white; border-radius:12px; padding:2.5rem; width:360px; box-shadow:0 4px 24px rgba(0,0,0,0.2); text-align:center; }
+  .auth-box h1 { font-size:1.2rem; color:#1e293b; margin-bottom:0.3rem; }
+  .auth-box .subtitle { font-size:0.85rem; color:#64748b; margin-bottom:1.5rem; }
+  .auth-box input { width:100%; padding:0.7rem 1rem; border:1px solid #cbd5e1; border-radius:8px; font-size:0.95rem; outline:none; }
+  .auth-box input:focus { border-color:#B95627; }
+  .auth-box button { width:100%; padding:0.7rem; margin-top:0.75rem; border:none; border-radius:8px; background:#352057; color:white; font-size:0.95rem; font-weight:600; cursor:pointer; }
+  .auth-box button:hover { background:#4a2d75; }
+  .auth-error { color:#ef4444; font-size:0.85rem; margin-top:0.75rem; display:none; }
+</style>
+<div id="auth-gate">
+  <div class="auth-box">
+    <h1>Iran Crisis Trade Monitor</h1>
+    <div class="subtitle">Enter the password to continue</div>
+    <input type="password" id="auth-pw" placeholder="Password" autofocus onkeydown="if(event.key==='Enter')document.getElementById('auth-btn').click()">
+    <button id="auth-btn" onclick="checkAuth()">Enter</button>
+    <div class="auth-error" id="auth-err">Incorrect password</div>
+  </div>
+</div>
+<script>
+async function checkAuth(){var pw=document.getElementById("auth-pw").value;var enc=new TextEncoder();var hash=await crypto.subtle.digest("SHA-256",enc.encode(pw));var hex=Array.from(new Uint8Array(hash)).map(function(b){return b.toString(16).padStart(2,"0")}).join("");if(hex==="96869035ed72106a7d2d9eabd7c5b46ca832d3c51a5b2f524c36f224d870eb8b"){document.getElementById("auth-gate").style.display="none";document.getElementById("dashboard-content").style.display="block";}else{document.getElementById("auth-err").style.display="block";}}
+</script>
+<div id="dashboard-content" style="display:none">
+<div class="hdr">
+  <h1>Iran Crisis Trade Monitor</h1>
+  <div class="sub">Strait of Hormuz Disruption Tracker &mdash; Data from Trade Data Monitor</div>
+  <div class="meta">Crisis onset: Feb 28, 2026 | Data coverage: Sep 2025 &ndash; Feb 2026 | Generated: Mar 31, 2026</div>
+</div>
+<div class="dash">
+<div class="insight">
+  <strong>Context:</strong> On Feb 28, 2026 the US and Israel struck Iran. Iran retaliated by effectively closing the Strait of Hormuz&mdash;through which ~27% of global crude oil transits. Oil prices surged past $126/bbl. Gulf food imports, LNG, fertilizer, and aluminum markets have all been disrupted.
+</div>
+<div class="kpi-row" id="kpis"></div>
+<div class="sec">Oil &amp; Mineral Fuels (HS 27) &mdash; Imports</div>
+<div class="grid">
+  <div class="card"><h3>Major Importers &mdash; Total Oil Imports</h3><div class="desc">Monthly HS 27 imports, all partners, Sep 2025&ndash;Feb 2026</div><canvas id="c1"></canvas></div>
+  <div class="card"><h3>Oil Imports from Gulf States Only</h3><div class="desc">HS 27 from Saudi Arabia, Kuwait, Qatar, Bahrain, Oman, Iraq, Iran</div><canvas id="c2"></canvas></div>
+  <div class="card"><h3>Gulf Share of Oil Imports</h3><div class="desc">Gulf oil as % of total oil imports per country</div><canvas id="c3"></canvas></div>
+  <div class="card"><h3>US &amp; China: Year-over-Year Oil Comparison</h3><div class="desc">Sep&ndash;Jan current vs prior year (HS 27, all partners)</div><canvas id="c4"></canvas></div>
+</div>
+<div class="sec">Gulf Food Security</div>
+<div class="grid">
+  <div class="card"><h3>Saudi Arabia &mdash; Food Imports vs Total Imports</h3><div class="desc">HS 01&ndash;24 (food) and total, monthly</div><canvas id="c5"></canvas></div>
+  <div class="card"><h3>Saudi Arabia &mdash; Food as % of Total Imports</h3><div class="desc">Monthly food import share</div><canvas id="c6"></canvas></div>
+</div>
+<div class="sec">Iran Direct Trade Impact</div>
+<div class="grid">
+  <div class="card"><h3>Iran Total Exports &amp; Oil Exports</h3><div class="desc">All commodities vs HS 27 (oil), monthly</div><canvas id="c7"></canvas></div>
+  <div class="card"><h3>Iran Total Imports &amp; Food Imports</h3><div class="desc">All commodities vs HS 01&ndash;24 (food), monthly</div><canvas id="c8"></canvas></div>
+</div>
+<div class="sec">Key Commodities &mdash; US Imports</div>
+<div class="grid">
+  <div class="card"><h3>US Fertilizer Imports (HS 31)</h3><div class="desc">HS 31 (fertilizers), monthly &mdash; data through Jan 2026 (pre-crisis)</div><canvas id="c9"></canvas></div>
+  <div class="card"><h3>US Aluminum Imports (HS 76)</h3><div class="desc">Unwrought aluminum and articles, monthly</div><canvas id="c10"></canvas></div>
+</div>
+<div class="note">
+  <strong>Data notes:</strong> Data freshness varies by reporter: China, Japan, and South Korea report through <strong>Feb 2026</strong> (the crisis month). US, India, Saudi Arabia, and Iran report through <strong>Jan 2026</strong> (pre-crisis baseline only). UAE data was not available for this period and is excluded. Where a country's data ends before Feb 2026, lines stop at the last available month rather than dropping to zero. All values in USD. Source: Trade Data Monitor (tradedatamonitor.com).
+</div>
+</div>
+<script>
+const D={"US_oil_total":{"202511":13959021609,"202512":17233787185,"202509":16961460066,"202601":16780305788,"202510":15492787670},"US_oil_gulf":{"202509":1506272160,"202601":1490039674,"202512":1362053543,"202511":1287958433,"202510":1430830340},"China_oil_total":{"202602":32809605554,"202509":36308929339,"202510":35508358785,"202512":41125188382,"202511":36974093715,"202601":35325018386},"China_oil_gulf":{"202509":12991628111,"202512":14917991967,"202511":12660299005,"202601":12007089890,"202510":13639294229,"202602":10277194608},"India_oil_total":{"202601":15687582122,"202509":16132086133,"202510":17196724085,"202511":16493393731,"202512":16733120404},"India_oil_gulf":{"202510":8430402608,"202512":8525779761,"202601":8039073403,"202511":6401005032,"202509":7410994342},"Japan_oil_total":{"202509":11385547078,"202510":12188608307,"202511":10653019406,"202512":13513786724,"202602":11492237753,"202601":13293094475},"Japan_oil_gulf":{"202510":5991727388,"202511":5186224218,"202602":5171282230,"202601":6235599497,"202509":5535708342,"202512":6770052048},"S.Korea_oil_total":{"202601":12041127485,"202509":11304136656,"202512":11246980261,"202511":10256127124,"202602":10846287120,"202510":11864275548},"S.Korea_oil_gulf":{"202509":5663469451,"202602":5009721803,"202511":4327093336,"202601":5767082006,"202512":4729029563,"202510":5769173855},"US_oil_total_prev":{"202412":18581100549,"202502":17408313277,"202409":18867833802,"202501":19459313384,"202410":18096045201,"202411":17396607135},"US_oil_gulf_prev":{"202502":1432364299,"202409":2182730297,"202411":1701889937,"202410":1435942305,"202412":1288093416,"202501":1771911635},"China_oil_total_prev":{"202501":36027843451,"202502":35447353033,"202409":41706331120,"202410":38779752155,"202412":40792208659,"202411":40959179589},"China_oil_gulf_prev":{"202410":11532219445,"202409":14984147314,"202502":13391491208,"202412":13849785305,"202501":12956859319,"202411":14630656620},"Saudi Arabia_food":{"202509":2304617155,"202512":2738527711,"202601":2494868140,"202510":2387630580,"202511":2287220732},"Saudi Arabia_total":{"202509":20614568124,"202512":22418701021,"202601":21695371798,"202510":21337675265,"202511":20618332410},"Iran_exports_total":{"202509":5053463135,"202510":6116479498,"202511":4991585437,"202512":4291084788,"202601":3793033743},"Iran_imports_total":{"202509":5341061627,"202510":5875351231,"202511":5304581294,"202601":4959256123,"202512":4610224777},"Iran_exports_oil":{"202509":1262776798,"202510":2363908580,"202511":1350674307,"202512":1208681932,"202601":1049276407},"Iran_imports_food":{"202509":1396157459,"202510":1383140499,"202511":1217415771,"202601":1460580853,"202512":1161209175},"US_fertilizer":{"202510":612340923,"202509":569694479,"202512":520611169,"202601":794197881,"202511":588668413},"US_aluminum":{"202511":1910503677,"202510":2038533666,"202509":1947179242,"202601":2374855212,"202512":2190890796}};
+const C=['#B95627','#352057','#4A90D9','#D94A4A','#5CB85C','#F0AD4E','#9B59B6','#1ABC9C'];
+const ML=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function pLabel(p){if(!p||p.length<6)return p;return ML[parseInt(p.slice(4,6))-1]+' '+p.slice(0,4);}
+function fmtB(v){if(Math.abs(v)>=1e9)return '$'+(v/1e9).toFixed(1)+'B';if(Math.abs(v)>=1e6)return '$'+(v/1e6).toFixed(0)+'M';return '$'+v.toFixed(0);}
+function sortedPeriods(obj){return Object.keys(obj||{}).sort();}
+function vals(obj,periods){return periods.map(p=>(obj||{}).hasOwnProperty(p)?obj[p]:null);}
+function lineChart(id,datasets,periods){new Chart(document.getElementById(id),{type:'line',data:{labels:periods.map(pLabel),datasets:datasets.map((ds,i)=>({label:ds.label,data:vals(ds.data,periods),borderColor:C[i%C.length],backgroundColor:C[i%C.length]+'18',fill:true,tension:.3,pointRadius:4,borderWidth:2,spanGaps:false}))},options:{responsive:true,plugins:{tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtB(ctx.parsed.y)}}},scales:{y:{ticks:{callback:v=>fmtB(v)},beginAtZero:false}}}});}
+function barChart(id,labels,datasets){new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:datasets.map((ds,i)=>({label:ds.label,data:ds.data,backgroundColor:C[i%C.length]+'cc'}))},options:{responsive:true,plugins:{tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtB(ctx.parsed.y)}}},scales:{y:{ticks:{callback:v=>fmtB(v)},beginAtZero:true}}}});}
+const kpiEl=document.getElementById('kpis');
+function kpi(label,series){const periods=sortedPeriods(series);if(periods.length<2)return{label,val:'N/A',chg:null};const latest=series[periods[periods.length-1]];const prev=series[periods[periods.length-2]];const pct=prev?((latest-prev)/prev*100):0;return{label,val:fmtB(latest),chg:pct,period:pLabel(periods[periods.length-1])};}
+const kpis=[kpi('China Gulf Oil (Latest)',D['China_oil_gulf']),kpi('Japan Gulf Oil (Latest)',D['Japan_oil_gulf']),kpi('S.Korea Gulf Oil (Latest)',D['S.Korea_oil_gulf']),kpi('Iran Total Exports',D['Iran_exports_total']),kpi('Saudi Food Imports',D['Saudi Arabia_food']),kpi('US Fertilizer Imports',D['US_fertilizer'])];
+kpiEl.innerHTML=kpis.map(k=>{let ch='';if(k.chg!==null){const cls=k.chg<0?'neg':'pos';const arr=k.chg<0?'&#9660;':'&#9650;';ch='<div class="chg '+cls+'">'+arr+' '+Math.abs(k.chg).toFixed(1)+'% m/m</div>';}return '<div class="kpi"><div class="lbl">'+k.label+'</div><div class="val">'+k.val+'</div>'+ch+'<div class="lbl">'+(k.period||'')+'</div></div>';}).join('');
+const allP=['202509','202510','202511','202512','202601','202602'];
+lineChart('c1',[{label:'China',data:D['China_oil_total']},{label:'US',data:D['US_oil_total']},{label:'India',data:D['India_oil_total']},{label:'Japan',data:D['Japan_oil_total']},{label:'S.Korea',data:D['S.Korea_oil_total']}],allP);
+lineChart('c2',[{label:'China',data:D['China_oil_gulf']},{label:'India',data:D['India_oil_gulf']},{label:'Japan',data:D['Japan_oil_gulf']},{label:'S.Korea',data:D['S.Korea_oil_gulf']},{label:'US',data:D['US_oil_gulf']}],allP);
+const gulfShare={};['China','India','Japan','S.Korea','US'].forEach(c=>{gulfShare[c]={};allP.forEach(p=>{const totObj=D[c+'_oil_total']||{};const gulfObj=D[c+'_oil_gulf']||{};if(!totObj.hasOwnProperty(p)){gulfShare[c][p]=null;return;}const tot=totObj[p]||0;const gulf=gulfObj[p]||0;gulfShare[c][p]=tot>0?(gulf/tot*100):0;});});
+new Chart(document.getElementById('c3'),{type:'line',data:{labels:allP.map(pLabel),datasets:['China','India','Japan','S.Korea','US'].map((c,i)=>({label:c,data:allP.map(p=>gulfShare[c][p]),borderColor:C[i%C.length],tension:.3,pointRadius:4,borderWidth:2,fill:false,spanGaps:false}))},options:{responsive:true,scales:{y:{ticks:{callback:v=>v.toFixed(0)+'%'},min:0,max:70}},plugins:{tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.y.toFixed(1)+'%'}}}}});
+const yoyP=['202509','202510','202511','202512','202601'];const yoyPprev=['202409','202410','202411','202412','202501'];
+barChart('c4',yoyP.map(pLabel),[{label:'US (Current)',data:vals(D['US_oil_total'],yoyP)},{label:'US (Prior Year)',data:vals(D['US_oil_total_prev'],yoyPprev)},{label:'China (Current)',data:vals(D['China_oil_total'],yoyP)},{label:'China (Prior Year)',data:vals(D['China_oil_total_prev'],yoyPprev)}]);
+const saP=sortedPeriods(D['Saudi Arabia_total']);
+lineChart('c5',[{label:'Total Imports',data:D['Saudi Arabia_total']},{label:'Food Imports (HS 01-24)',data:D['Saudi Arabia_food']}],saP);
+const saFoodPct={};saP.forEach(p=>{const tot=(D['Saudi Arabia_total']||{})[p]||0;const food=(D['Saudi Arabia_food']||{})[p]||0;saFoodPct[p]=tot>0?food/tot*100:0;});
+new Chart(document.getElementById('c6'),{type:'bar',data:{labels:saP.map(pLabel),datasets:[{label:'Food % of Total',data:saP.map(p=>saFoodPct[p]),backgroundColor:C[0]+'cc'}]},options:{responsive:true,scales:{y:{ticks:{callback:v=>v.toFixed(0)+'%'},min:0,max:20}}}});
+const irP=sortedPeriods(D['Iran_exports_total']);
+lineChart('c7',[{label:'Total Exports',data:D['Iran_exports_total']},{label:'Oil Exports (HS 27)',data:D['Iran_exports_oil']}],irP);
+lineChart('c8',[{label:'Total Imports',data:D['Iran_imports_total']},{label:'Food Imports (HS 01-24)',data:D['Iran_imports_food']}],irP);
+const usP=sortedPeriods(D['US_fertilizer']);
+lineChart('c9',[{label:'US Fertilizer Imports',data:D['US_fertilizer']}],usP);
+lineChart('c10',[{label:'US Aluminum Imports',data:D['US_aluminum']}],usP);
+</script>
+</div>
+</body>
+</html>
